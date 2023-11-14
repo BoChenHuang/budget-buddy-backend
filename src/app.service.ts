@@ -10,6 +10,6 @@ export class AppService {
   }
 
   getTestMsg(): string {
-    return this.configService.get<string>('database.url');
+    return this.configService.get<string>('database.test');
   }
 }

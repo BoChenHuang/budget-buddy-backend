@@ -3,19 +3,19 @@ import mongoose from "mongoose";
 
 @Schema()
 export class User {
-    @Prop()
+    @Prop({type: mongoose.Schema.Types.String, required: true})
     name: string;
 
-    @Prop()
+    @Prop({type: mongoose.Schema.Types.String, required: true})
     email: string;
 
-    @Prop()
+    @Prop({type: mongoose.Schema.Types.String, required: true})
     password: string;
 
     @Prop([mongoose.Schema.Types.ObjectId])
     ledgers: mongoose.Schema.Types.ObjectId[];
 
-    @Prop()
+    @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Setting', required: true})
     setting: mongoose.Schema.Types.ObjectId;
 
     @Prop({default: Date.now})

@@ -7,10 +7,10 @@ import { Public } from 'src/auth/decoratror';
 @Controller('api/user')
 export class UserController {
     constructor(private readonly userService: UserService, private configService: ConfigService) { }
-    
+
     @Get()
     getAll() {
-        return this.userService.getAll();
+        return this.userService.getCountOfUsers();
     }
 
     @Public()

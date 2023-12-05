@@ -5,6 +5,7 @@ import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
 import { IsMongoId } from 'class-validator';
 import { DeleteLedgerDto } from 'src/database/dto/ledger/delete-ledger.dto';
 import mongoose, { Mongoose } from 'mongoose';
+import { UpdateLedgerDto } from 'src/database/dto/ledger/update-ledger.dto';
 
 @Controller('api/ledger')
 export class LedgerController {
@@ -36,5 +37,11 @@ export class LedgerController {
         const dto = { userId: req.user.id, ...body }
         await this.ledgerService.delete(dto)
         return 'Sucess!'
+    }
+
+    @Post('/update')
+    async update(@Request() req, @Body() body: UpdateLedgerDto) {
+        const dto = { userId: req.user.id, ...body }
+        return this.ledgerService.update(dto)
     }
 }

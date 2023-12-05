@@ -4,8 +4,9 @@ import mongoose, { Model } from 'mongoose';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
 import { DeleteLedgerDto } from 'src/database/dto/ledger/delete-ledger.dto';
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
+import { UpdateLedgerDto } from 'src/database/dto/ledger/update-ledger.dto';
 import { Ledger } from 'src/database/schema/ledger.schema';
-
+import * as _ from 'lodash';
 @Injectable()
 export class LedgerService {
     constructor(
@@ -28,6 +29,7 @@ export class LedgerService {
             description: createLedgerDto.description,
             owner: createLedgerDto.userId
         })
+
         return await ledger.save()
     }
 
@@ -36,5 +38,12 @@ export class LedgerService {
         for( const ledger of ledgers) {
             await ledger.deleteOne()
         }
+    }
+
+    async update(updateLedgerDto: UpdateLedgerDto & {userId: string}) {
+        const data = _.omit(updateLedgerDto, 'ledgerId')
+        console.log('data:', data)
+        const ledger = await this.ledgerModel.findOneAndUpdate({ _id: updateLedgerDto.ledgerId, owner: updateLedgerDto.userId }, data, {new: true})
+        return ledger
     }
 }

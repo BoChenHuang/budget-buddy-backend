@@ -1,10 +1,11 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto } from 'src/database/dto/create-user.dto';
+import { CreateUserDto } from 'src/database/dto/user/create-user.dto';
 import { Setting } from 'src/database/schema/setting.schema';
 import { User } from 'src/database/schema/user.schema';
 import * as _ from 'lodash'
+import { UpdateUserDto } from 'src/database/dto/user/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -36,5 +37,16 @@ export class UserService {
         } catch (error) {
             return error
         }
+    }
+
+    async getById(id: string) {
+        const user = await this.userModel.findById(id)
+        return user
+    }
+
+    async update(updateUserDto: UpdateUserDto & {userId: string}) {
+        const data = _.omit(updateUserDto, 'userId')
+        const user = await this.userModel.findByIdAndUpdate(updateUserDto.userId, data, { new: true })
+        return user
     }
 }

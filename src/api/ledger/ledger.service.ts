@@ -41,7 +41,7 @@ export class LedgerService {
     }
 
     async update(updateLedgerDto: UpdateLedgerDto & {userId: string}) {
-        const data = _.omit(updateLedgerDto, 'ledgerId')
+        const data = _.omit(updateLedgerDto, [ 'ledgerId', 'userId' ])
         console.log('data:', data)
         const ledger = await this.ledgerModel.findOneAndUpdate({ _id: updateLedgerDto.ledgerId, owner: updateLedgerDto.userId }, data, {new: true})
         return ledger

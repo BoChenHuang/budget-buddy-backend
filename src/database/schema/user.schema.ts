@@ -12,9 +12,6 @@ export class User {
     @Prop({type: mongoose.Schema.Types.String, required: true})
     password: string;
 
-    @Prop([mongoose.Schema.Types.ObjectId])
-    ledgers: mongoose.Schema.Types.ObjectId[];
-
     @Prop({type: mongoose.Schema.Types.ObjectId, ref: 'Setting', required: true})
     setting: mongoose.Schema.Types.ObjectId;
 

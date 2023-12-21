@@ -3,14 +3,8 @@ import mongoose from "mongoose";
 
 @Schema()
 export class Setting {
-    @Prop({default: "en"})
-    language: string;
-
     @Prop({type: [mongoose.Schema.Types.ObjectId], ref: 'Category'})
     categories: mongoose.Schema.Types.ObjectId[];
-
-    @Prop()
-    theme: mongoose.Schema.Types.ObjectId;
 
     @Prop({default: Date.now})
     createAt: Date;

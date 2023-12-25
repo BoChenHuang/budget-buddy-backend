@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Query, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
 import { LedgerService } from './ledger.service';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
@@ -14,10 +14,7 @@ export class LedgerController {
     getLedgers(@Request() req, @Query('id') id?: string) {
         if (id) {
             if (mongoose.Types.ObjectId.isValid(id)) {
-                if (id)
-                    return this.ledgerService.getLedgerById(id)
-                else
-                    return null
+                return this.ledgerService.getLedgerById(id)
             } else
                 return new BadRequestException(`${id} is invalid.`)
         } else {
@@ -32,14 +29,19 @@ export class LedgerController {
         return this.ledgerService.create(dto)
     }
 
-    @Post('/delete')
-    async delete(@Request() req, @Body() body: DeleteLedgerDto) {
-        const dto = { userId: req.user.id, ...body }
-        await this.ledgerService.delete(dto)
-        return 'Sucess!'
+    @Delete('/delete/:id')
+    async delete(@Request() req, @Param('id') id) {
+        if (id) {
+            if (mongoose.Types.ObjectId.isValid(id)) {
+                await this.ledgerService.delete(id, req.user.id)
+                return 'Sucess!'
+            } else
+                return new BadRequestException(`${id} is invalid.`)
+        }
+        return
     }
 
-    @Post('/update')
+    @Patch('/update')
     async update(@Request() req, @Body() body: UpdateLedgerDto) {
         const dto = { userId: req.user.id, ...body }
         return this.ledgerService.update(dto)

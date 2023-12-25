@@ -1,7 +1,8 @@
-import { BadRequestException, Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import mongoose from 'mongoose';
 import { CreateCategoryDto } from 'src/database/dto/category/create-category.dto';
+import { UpdateCategoryDto } from 'src/database/dto/category/update-category.dto';
 
 @Controller('api/category')
 export class CategoryController {
@@ -31,6 +32,20 @@ export class CategoryController {
         return this.categoryService.create(settingId, createCategoryDto);
     }
 
-    // TODO: update
-    // TODO: delete
+    @Patch('/update')
+    async updateCategory(@Body() updateCategoryDto: UpdateCategoryDto) {
+        return this.categoryService.updateCategory(updateCategoryDto)
+    }
+    
+    @Delete('/delete/:id')
+    async deleteCategory(@Request() req, @Param('id') id) {
+        if (id) {
+            if (mongoose.Types.ObjectId.isValid(id)) {
+                await this.categoryService.deleteCategory(id, req.user.setting)
+                return 'Sucess!'
+            } else
+                return new BadRequestException(`${id} is invalid.`)
+        }
+        return
+    }
 }

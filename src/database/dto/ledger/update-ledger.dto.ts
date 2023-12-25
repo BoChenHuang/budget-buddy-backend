@@ -6,7 +6,7 @@ export class UpdateLedgerDto {
     ledgerId: string
 
     @IsString()
-    @ValidateIf((object) => object.image !== undefined)
+    @ValidateIf((object) => object.name !== undefined)
     name: string | undefined;
 
     @IsString()

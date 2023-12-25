@@ -33,16 +33,13 @@ export class LedgerService {
         return await ledger.save()
     }
 
-    async delete(deleteLedgerDto: DeleteLedgerDto & {userId: string}) {
-        const ledgers = await this.ledgerModel.find({_id: deleteLedgerDto.ledgerId, owner: deleteLedgerDto.userId})
-        for( const ledger of ledgers) {
-            await ledger.deleteOne()
-        }
+    async delete(ledgerId: string, userId: string) {
+        await this.ledgerModel.findOneAndDelete({_id: ledgerId, owner: userId});
+        // TODO: delete the records、found and credit card of ledgers
     }
 
     async update(updateLedgerDto: UpdateLedgerDto & {userId: string}) {
-        const data = _.omit(updateLedgerDto, [ 'ledgerId', 'userId' ])
-        // TODO: update the updateAt property
+        const data ={..._.omit(updateLedgerDto, [ 'ledgerId', 'userId' ]), updateAt: Date.now()}
         const ledger = await this.ledgerModel.findOneAndUpdate({ _id: updateLedgerDto.ledgerId, owner: updateLedgerDto.userId }, data, {new: true})
         return ledger
     }

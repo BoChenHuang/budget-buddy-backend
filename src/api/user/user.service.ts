@@ -45,8 +45,7 @@ export class UserService {
     }
 
     async update(updateUserDto: UpdateUserDto & {userId: string}) {
-        const data = _.omit(updateUserDto, 'userId')
-        //TODO: update the updateAt property
+        const data = {..._.omit(updateUserDto, 'userId'), updateAt: Date.now()};
         const user = await this.userModel.findByIdAndUpdate(updateUserDto.userId, data, { new: true })
         return user
     }

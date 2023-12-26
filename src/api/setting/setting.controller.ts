@@ -1,6 +1,9 @@
 import { Controller, Get, Request } from '@nestjs/common';
 import { SettingService } from './setting.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('setting')
 @Controller('api/setting')
 export class SettingController {
     constructor(private readonly settingService: SettingService) { }

@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
-import { DeleteLedgerDto } from 'src/database/dto/ledger/delete-ledger.dto';
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
 import { UpdateLedgerDto } from 'src/database/dto/ledger/update-ledger.dto';
 import { Ledger } from 'src/database/schema/ledger.schema';

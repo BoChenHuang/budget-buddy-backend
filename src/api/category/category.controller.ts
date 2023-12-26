@@ -3,13 +3,17 @@ import { CategoryService } from './category.service';
 import mongoose from 'mongoose';
 import { CreateCategoryDto } from 'src/database/dto/category/create-category.dto';
 import { UpdateCategoryDto } from 'src/database/dto/category/update-category.dto';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('category')
 @Controller('api/category')
 export class CategoryController {
     constructor(
         private readonly categoryService: CategoryService
     ){}
 
+    @ApiQuery({name: 'id', required: false, description: 'The id of category'})
     @Get()
     async getCategory(@Request() req, @Query('id') id?: string) {
         if(id) {
@@ -37,6 +41,7 @@ export class CategoryController {
         return this.categoryService.updateCategory(updateCategoryDto)
     }
     
+    @ApiParam({name: 'id', required: true, description: 'The id of category'})
     @Delete('/delete/:id')
     async deleteCategory(@Request() req, @Param('id') id) {
         if (id) {

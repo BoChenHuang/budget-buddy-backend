@@ -4,7 +4,10 @@ import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from 'src/database/dto/user/create-user.dto';
 import { Public } from 'src/auth/decoratror';
 import { UpdateUserDto } from 'src/database/dto/user/update-user.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('user')
 @Controller('api/user')
 export class UserController {
     constructor(private readonly userService: UserService, private configService: ConfigService) { }

@@ -2,14 +2,16 @@ import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post,
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
 import { LedgerService } from './ledger.service';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
-import { IsMongoId } from 'class-validator';
-import { DeleteLedgerDto } from 'src/database/dto/ledger/delete-ledger.dto';
-import mongoose, { Mongoose } from 'mongoose';
+import mongoose from 'mongoose';
 import { UpdateLedgerDto } from 'src/database/dto/ledger/update-ledger.dto';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('ledger')
 @Controller('api/ledger')
 export class LedgerController {
     constructor(private readonly ledgerService: LedgerService) { }
+    @ApiQuery({name: 'id', required: false, description: 'The id of ledger'})
     @Get()
     getLedgers(@Request() req, @Query('id') id?: string) {
         if (id) {
@@ -29,6 +31,7 @@ export class LedgerController {
         return this.ledgerService.create(dto)
     }
 
+    @ApiParam({name: 'id', required: true, description: 'The id of ledger'})
     @Delete('/delete/:id')
     async delete(@Request() req, @Param('id') id) {
         if (id) {

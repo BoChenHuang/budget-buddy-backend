@@ -13,10 +13,10 @@ export class CreditCard {
     limit: number;
 
     @Prop()
-    statementClosingDate: string;
+    statementClosingDate: Date;
 
     @Prop()
-    dueDate: String
+    dueDate: Date;
      
     @Prop({default: Date.now})
     createAt: Date;

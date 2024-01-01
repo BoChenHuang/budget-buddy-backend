@@ -5,6 +5,8 @@ import { AuthModule } from './auth/auth.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { SettingModule } from './setting/setting.module';
 import { CategoryModule } from './category/category.module';
+import { FundModule } from './fund/fund.module';
+import { CreditCardModule } from './credit-card/credit-card.module';
 
 @Module({
   imports: [
@@ -12,7 +14,9 @@ import { CategoryModule } from './category/category.module';
     AuthModule,
     LedgerModule,
     SettingModule,
-    CategoryModule
+    CategoryModule,
+    FundModule,
+    CreditCardModule
   ],
   controllers: [ApiController],
   providers: [],

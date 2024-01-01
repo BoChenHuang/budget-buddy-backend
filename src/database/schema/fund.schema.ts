@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 
 @Schema()
-export class Found {
+export class Fund {
     @Prop()
     name: string;
 
@@ -19,4 +19,4 @@ export class Found {
     updateAt: Date;
 }
 
-export const FoundSchema = SchemaFactory.createForClass(Found);
+export const FundSchema = SchemaFactory.createForClass(Fund);

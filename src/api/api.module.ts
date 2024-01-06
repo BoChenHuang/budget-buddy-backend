@@ -7,6 +7,8 @@ import { SettingModule } from './setting/setting.module';
 import { CategoryModule } from './category/category.module';
 import { FundModule } from './fund/fund.module';
 import { CreditCardModule } from './credit-card/credit-card.module';
+import { RecordModule } from './record/record.module';
+import { CurrencyModule } from './currency/currency.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { CreditCardModule } from './credit-card/credit-card.module';
     SettingModule,
     CategoryModule,
     FundModule,
-    CreditCardModule
+    CreditCardModule,
+    RecordModule,
+    CurrencyModule
   ],
   controllers: [ApiController],
   providers: [],

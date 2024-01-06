@@ -40,4 +40,4 @@ export class Record {
     updateAt: Date;
 }
 
-export const RecordCardSchema = SchemaFactory.createForClass(Record);
+export const RecordSchema = SchemaFactory.createForClass(Record);

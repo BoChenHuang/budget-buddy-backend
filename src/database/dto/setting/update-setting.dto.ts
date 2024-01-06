@@ -5,6 +5,6 @@ export class UpdateSettingDto {
     @IsArray()
     @IsMongoId({each: true})
     @ValidateIf((object) => object.categories !== undefined)
-    @ApiPropertyOptional({ description: 'The categories id of a user' })
+    @ApiPropertyOptional({ description: 'The array of categories' })
     categories: string[] | undefined;
 }

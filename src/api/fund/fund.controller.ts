@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
 import { CreateFundDto } from 'src/database/dto/fund/create-fund.dto';
 import { UpdateFundDto } from 'src/database/dto/fund/update-fund.dto';
+import { SetFundLockDto } from 'src/database/dto/fund/set-fund-lock.dto';
 
 @ApiBearerAuth()
 @ApiTags('fund')
@@ -45,5 +46,10 @@ export class FundController {
     @Patch('/update')
     async updateFund(@Body() updateFundDto: UpdateFundDto) {
         return this.fundService.update(updateFundDto);
+    }
+
+    @Patch('/setLock')
+    async setLock(@Body() setFundLockDto: SetFundLockDto) {
+        return this.fundService.setLock(setFundLockDto)
     }
 }

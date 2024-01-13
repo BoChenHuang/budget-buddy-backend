@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateCreditCardDto } from 'src/database/dto/credit-card/create-credit-card.dto';
 import { UpdateCreditCardDto } from 'src/database/dto/credit-card/update-credit-card.dto';
 import { CreditCard } from 'src/database/schema/creditcard.schema';
 import * as _ from 'lodash';
+import { SetCreditCardLockDto } from 'src/database/dto/credit-card/set-credit-card-lock.dto';
 
 @Injectable()
 export class CreditCardService {
@@ -28,8 +29,23 @@ export class CreditCardService {
     }
 
     async update(updateCreditCardDto: UpdateCreditCardDto) {
-        const data = { ..._.omit(updateCreditCardDto, "creditCardId"), updateAt: Date.now()};
-        const creditCard = this.creditCardModel.findByIdAndUpdate(updateCreditCardDto.creditCardId, data, {new: true});
-        return creditCard;
+        const data = { ..._.omit(updateCreditCardDto, ["creditCardId","lock"]), updateAt: Date.now()};
+
+        const creditCard = await this.creditCardModel.findById(updateCreditCardDto.creditCardId);
+        if (creditCard.lock == true) {
+            throw new HttpException("CreditCard is locked", 403)
+        } else {
+            const newCreditCard = await this.creditCardModel.findByIdAndUpdate(updateCreditCardDto.creditCardId, 
+                                                                                data,
+                                                                                {new: true});
+            return newCreditCard;
+        }
+    }
+
+    async setLock(setCreditCardLockDto: SetCreditCardLockDto) {
+        const creaditCard = await this.creditCardModel.findByIdAndUpdate(setCreditCardLockDto.creditCardId, 
+                                                                        {lock: setCreditCardLockDto.lock},
+                                                                        {new: true});
+        return creaditCard;                                                                
     }
 }

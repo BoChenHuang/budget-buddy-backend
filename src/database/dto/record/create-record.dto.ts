@@ -1,16 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsString, ValidateIf } from "class-validator";
+import { IsArray, IsEnum, IsIn, IsMongoId, IsNotEmpty, IsNumber, IsString, ValidateIf } from "class-validator";
 
-enum OperationType {
-    income = 1,
-    expenditure = 2,
-    transfer = 3,
-}
+const opTypes = ['income', 'expenditure', 'transfer'] as const;
+export type OperationType = typeof opTypes[number];
 
-enum SourceType {
-    Found = 1,
-    CreditCard = 2,
-}
+const scType = ['Fund', 'CreditCard'] as const;
+export type SourceType = typeof scType[number];
+
+// enum OperationType {
+//     income = 1,
+//     expenditure = 2,
+//     transfer = 3,
+// }
+
+// enum SourceType {
+//     Found = 1,
+//     CreditCard = 2,
+// }
 
 export class CreateRecordDto {
     @IsString()
@@ -40,27 +46,28 @@ export class CreateRecordDto {
     description: string;
 
     @IsNotEmpty()
-    @IsEnum(OperationType)
-    @ApiProperty({description: "The type of record"})
+    @IsIn(opTypes)
+    @ApiProperty({description: "The type of operation"})
     type: OperationType;
 
-    @IsEnum(SourceType)
-    @ValidateIf((object) => object.sourceType !== undefined)
+    @IsIn(scType)
+    @ValidateIf((object) => object.type == 'expenditure')
+    @IsNotEmpty()
     @ApiProperty({description: "The type of source"})
     sourceType: SourceType;
 
     @IsMongoId()
-    @ValidateIf((object) => object.source !== undefined)
+    @ValidateIf((object) => object.type == 'expenditure' || object.type == 'transfer')
     @ApiProperty({description: "The id of source"})
     source: string;
 
     @IsMongoId()
-    @ValidateIf((object) => object.source !== undefined)
+    @ValidateIf((object) => object.type == 'income' || object.type == 'transfer')
     @ApiProperty({description: "The id of destination"})
     destination: string;
 
     @IsNotEmpty()
     @IsNumber()
     @ApiProperty({description: "The amount of record"})
-    amount: string;
+    amount: number;
 }

@@ -10,6 +10,9 @@ export class CreditCard {
     ledgerId: mongoose.Schema.Types.ObjectId;
 
     @Prop()
+    lock: boolean;
+
+    @Prop()
     limit: number;
 
     @Prop()

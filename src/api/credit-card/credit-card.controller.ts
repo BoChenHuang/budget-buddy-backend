@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
 import { CreateCreditCardDto } from 'src/database/dto/credit-card/create-credit-card.dto';
 import { UpdateCreditCardDto } from 'src/database/dto/credit-card/update-credit-card.dto';
+import { SetCreditCardLockDto } from 'src/database/dto/credit-card/set-credit-card-lock.dto';
 
 @ApiBearerAuth()
 @ApiTags("credit-card")
@@ -44,7 +45,13 @@ export class CreditCardController {
     }
 
     @Patch('/update')
-    async updateFund(@Body() updateCreditCardDto: UpdateCreditCardDto) {
+    async updateCreditCard(@Body() updateCreditCardDto: UpdateCreditCardDto) {
         return this.creditCardService.update(updateCreditCardDto)
     }
+
+    @Patch('/setLock')
+    async setLock(@Body() setCreditCardLockDto: SetCreditCardLockDto) {
+        return this.creditCardService.setLock(setCreditCardLockDto)
+    }
+
 }

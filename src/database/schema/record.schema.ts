@@ -9,6 +9,9 @@ export class Record {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Ledger" })
     ledgerId: mongoose.Schema.Types.ObjectId;
 
+    @Prop({default: Date.now})
+    date: Date;
+
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Currency" })
     currency: mongoose.Schema.Types.ObjectId;
 
@@ -21,7 +24,7 @@ export class Record {
     @Prop({type: String, required: true, enum: ["income", " expenditure", "transfer"]})
     type: string;
 
-    @Prop({type: String, required: true, enum: ["Found", " CreditCard"]})
+    @Prop({type: String, enum: ["Found", " CreditCard"]})
     sourceType: string;
 
     @Prop({refPath: "sourceType"})
@@ -31,7 +34,7 @@ export class Record {
     destination: mongoose.Schema.Types.ObjectId;
 
     @Prop()
-    amount: string;
+    amount: number;
      
     @Prop({default: Date.now})
     createAt: Date;

@@ -21,16 +21,16 @@ export class Record {
     @Prop()
     description: string;
 
-    @Prop({type: String, required: true, enum: ["income", " expenditure", "transfer"]})
+    @Prop({type: String, required: true, enum: ["income", "expenditure", "transfer"]})
     type: string;
 
-    @Prop({type: String, enum: ["Found", " CreditCard"]})
+    @Prop({type: String, enum: ["Fund", "CreditCard"]})
     sourceType: string;
 
     @Prop({refPath: "sourceType"})
     source: mongoose.Schema.Types.ObjectId
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Found" })
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Fund" })
     destination: mongoose.Schema.Types.ObjectId;
 
     @Prop()

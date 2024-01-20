@@ -7,19 +7,19 @@ export type OperationType = typeof opTypes[number];
 const scType = ['Fund', 'CreditCard'] as const;
 export type SourceType = typeof scType[number];
 
-export class CreateRecordDto {
-    @IsString()
+export class UpdateRecordDto {
+    @IsMongoId()
     @IsNotEmpty()
+    @ApiProperty({description: "The id of record"})
+    recordId: string;
+    
+    @IsString()
+    @ValidateIf((object) => object.name !== undefined)
     @ApiProperty({description: "The name of record"})
     name: string;
 
     @IsMongoId()
-    @IsNotEmpty()
-    @ApiProperty({description: "The id of ledger"})
-    ledgerId: string;
-
-    @IsMongoId()
-    @IsNotEmpty()
+    @ValidateIf((object) => object.currency !== undefined)
     @ApiProperty({description: "The id of currency"})
     currency: string;
 
@@ -30,18 +30,17 @@ export class CreateRecordDto {
     categories: string[];
 
     @IsString()
-    @IsNotEmpty()
+    @ValidateIf((object) => object.description !== undefined)
     @ApiProperty({description: "The description of record"})
     description: string;
 
-    @IsNotEmpty()
     @IsIn(opTypes)
+    @ValidateIf((object) => object.type !== undefined)
     @ApiProperty({description: "The type of operation"})
     type: OperationType;
 
     @IsIn(scType)
-    @ValidateIf((object) => object.type == 'expenditure')
-    @IsNotEmpty()
+    @ValidateIf((object) => object.type == 'expenditure' )
     @ApiProperty({description: "The type of source"})
     sourceType: SourceType;
 
@@ -55,8 +54,8 @@ export class CreateRecordDto {
     @ApiProperty({description: "The id of destination"})
     destination: string;
 
-    @IsNotEmpty()
     @IsNumber()
+    @ValidateIf((object) => object.amount !== undefined)
     @ApiProperty({description: "The amount of record"})
     amount: number;
 }

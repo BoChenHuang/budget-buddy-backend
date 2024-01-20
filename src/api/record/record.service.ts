@@ -1,11 +1,13 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CreateRecordDto } from 'src/database/dto/record/create-record.dto';
+import { UpdateRecordDto } from 'src/database/dto/record/update-record.dto';
 import { CreditCard } from 'src/database/schema/creditcard.schema';
 import { Fund } from 'src/database/schema/fund.schema';
 import { Ledger } from 'src/database/schema/ledger.schema';
 import { Record } from 'src/database/schema/record.schema';
+import * as _ from "lodash";
 
 @Injectable()
 export class RecordService {
@@ -28,9 +30,10 @@ export class RecordService {
     }
 
     async createRecord(createRecordDto: CreateRecordDto) {
+        // 確認 record 所屬的 ledger 存在
         const ledger = await this.ledgerModel.findById(createRecordDto.ledgerId)
         if (!ledger)
-        throw new NotFoundException(`Ledger: ${createRecordDto.ledgerId} not found`)
+            throw new NotFoundException(`Ledger: ${createRecordDto.ledgerId} not found`)
         else {
             const session = await this.connection.startSession();
             session.startTransaction();
@@ -39,43 +42,48 @@ export class RecordService {
                 
                 if(createRecordDto.type) {
                     if(createRecordDto.type == "income") { // 收入
-                        const fund = await this.fundModel.findById(createRecordDto.destination)
+                        const fund = await this.fundModel.findById(createRecordDto.destination).session(session).exec();
+                        // 若存款帳戶不存在或為鎖住狀態不執行
                         if(!fund)
                             throw new NotFoundException(`Fund: ${createRecordDto.destination} not found`);
                         else if(fund.lock)
                             throw new HttpException(`Fund: ${createRecordDto.destination} is locked`, 403);
                         else {
                             fund.deposit += createRecordDto.amount;
-                            await fund.save();
+                            await fund.save({session: session});
                         }
                     } else if (createRecordDto.type == "expenditure" ){ //支出
                         if(createRecordDto.sourceType) {
+                            // 支出可能來自帳戶或信用卡
                             if(createRecordDto.sourceType == "Fund") {
-                                const fund = await this.fundModel.findById(createRecordDto.source);
+                                const fund = await this.fundModel.findById(createRecordDto.source).session(session).exec()
                                 if(!fund)
                                     throw new NotFoundException(`Fund: ${createRecordDto.source} not found`);
                                 else if(fund.lock)
                                     throw new HttpException(`Fund: ${createRecordDto.source} is locked`, 403);
                                 else {
                                     fund.deposit -= createRecordDto.amount;
-                                    await fund.save();
+                                    await fund.save({session: session});
                                 }
                             } else if(createRecordDto.sourceType == "CreditCard") {
-                                const creaditCard = await this.creditCardModel.findById(createRecordDto.source);
-                                if(!creaditCard)
+                                const creditCard = await this.creditCardModel.findById(createRecordDto.source).session(session).exec();
+                                if(!creditCard)
                                     throw new NotFoundException(`CreaditCard: ${createRecordDto.source} not found`);
-                                else if(creaditCard.lock)
+                                else if(creditCard.lock)
                                     throw new HttpException(`CreditCard: ${createRecordDto.source} is locked`, 403);
                                 else {
-                                    creaditCard.limit -= createRecordDto.amount;
-                                    await creaditCard.save();
+                                    creditCard.limit -= createRecordDto.amount;
+                                    await creditCard.save({session: session});
                                 }
+                            } else {
+                                throw new BadRequestException("sourceType is null")
                             }
                         }
-                    } else if (createRecordDto.type == "transfer"){ // 轉帳
+                    } else if (createRecordDto.type == "transfer") { // 轉帳
                         if(createRecordDto.source && createRecordDto.destination) {
-                            const source = await this.fundModel.findById(createRecordDto.source);
-                            const destination = await this.fundModel.findById(createRecordDto.destination);
+                            // 轉帳為帳戶間互轉
+                            const source = await this.fundModel.findById(createRecordDto.source).session(session).exec();
+                            const destination = await this.fundModel.findById(createRecordDto.destination).session(session).exec();
 
                             if(!source)
                                 throw new NotFoundException(`Fund: ${createRecordDto.source} not found`);
@@ -90,13 +98,14 @@ export class RecordService {
                             source.deposit -= createRecordDto.amount;
                             destination.deposit += createRecordDto.amount;
 
-                            await source.save();
-                            await destination.save();
+                            await source.save({session: session});
+                            await destination.save({session: session});
                         }
                     }
                 }
 
                 const record = await this.recordModel.create(createRecordDto)
+                await session.commitTransaction();
                 return record;
             } catch (error) {
                 await session.abortTransaction();
@@ -106,7 +115,178 @@ export class RecordService {
             }
         }
     }
-    // TODO: createa record
+
     // TODO: update record
-    // TODO: delete record
+    async updateRecord(updateRecordDto: UpdateRecordDto) {
+        const data = _.omit(updateRecordDto, ["recordId"]);
+        const record = await this.recordModel.findById(updateRecordDto.recordId);
+        if(!record)
+            throw new  NotFoundException(`Record: ${updateRecordDto.recordId} not found`);
+
+        // 確認 request 的正確性
+        if(updateRecordDto.type) {
+            if (updateRecordDto.type == "income") { // 收入
+                const fund = await this.fundModel.findById(updateRecordDto.destination);
+                if(!fund)
+                    throw new NotFoundException(`Fund: ${updateRecordDto.destination} not found`);
+                else if(fund.lock)
+                    throw new HttpException(`Fund: ${updateRecordDto.destination} is locked`, 403);
+
+            } else if (updateRecordDto.type == "expenditure") { // 支出
+                if (updateRecordDto.sourceType) {
+                    if (updateRecordDto.sourceType == "Fund") {
+                        const fund = await this.fundModel.findById(updateRecordDto.source);
+                        if(!fund)
+                            throw new NotFoundException(`Fund: ${updateRecordDto.source} not found`);
+                        else if(fund.lock)
+                            throw new HttpException(`Fund: ${updateRecordDto.source} is locked`, 403);
+                    } else if (updateRecordDto.sourceType == "CreditCard") {
+                        const creditCard = await this.creditCardModel.findById(updateRecordDto.source);
+                        if(!creditCard)
+                            throw new NotFoundException(`CreaditCard: ${updateRecordDto.source} not found`);
+                        else if(creditCard.lock)
+                            throw new HttpException(`CreditCard: ${updateRecordDto.source} is locked`, 403);
+                    }
+                } else
+                    throw new BadRequestException("sourceType is null")
+            } else if (updateRecordDto.type == "transfer") {
+                // 轉帳為帳戶間互轉
+                const source = await this.fundModel.findById(updateRecordDto.source);
+                const destination = await this.fundModel.findById(updateRecordDto.destination);
+
+                if(!source)
+                    throw new NotFoundException(`Fund: ${updateRecordDto.source} not found`);
+                else if(source.lock)
+                    throw new HttpException(`Fund: ${updateRecordDto.source} is locked`, 403);
+
+                if(!destination)
+                    throw new NotFoundException(`Fund: ${updateRecordDto.destination} not found`);
+                else if(destination.lock)
+                    throw new HttpException(`Fund: ${updateRecordDto.destination} is locked`, 403);
+            }
+        }
+
+        const session = await this.connection.startSession();
+        session.startTransaction();
+        try {
+            if(updateRecordDto.amount || updateRecordDto.type) {
+                // 還原原先的操作
+                if (record.type == "income") { //還原收入操作
+                    const fund = await this.fundModel.findById(record.destination).session(session).exec();
+                    if(fund) {
+                        fund.deposit -= record.amount; // 將增加的金額扣除
+                        await fund.save({session: session});
+                    } else
+                    if(!fund)
+                        throw new NotFoundException(`Undo error: income destination: ${record.destination} not exist`);
+                } else if (record.type == "expenditure") { // 還原支出操作
+                    if(record.sourceType) {
+                        if(record.sourceType == "Fund") {
+                            const fund = await this.fundModel.findById(record.source).session(session).exec();
+                            if(!fund)
+                                throw new NotFoundException(`Undo error: expenditure source ${record.source} not exist`);
+                            else {
+                                fund.deposit += record.amount; // 將支出加回來
+                                await fund.save({session: session});
+                            }
+                        } else if(record.sourceType == "CreditCard") {
+                            const creditCard = await this.creditCardModel.findById(record.source).session(session).exec();
+                            if(!creditCard)
+                                throw new NotFoundException(`Undo error: expenditure source ${record.source} not exist`);
+                            else {
+                                creditCard.limit += record.amount; // 將支出加回來
+                                await creditCard.save({session: session});
+                            }
+                        }
+                    }
+                } else if (record.type == "transfer") { // 還原轉帳操作
+                    const source = await this.fundModel.findById(record.source).session(session).exec();
+                    const destination = await this.fundModel.findById(record.destination).session(session).exec();
+
+                    if(!source)
+                        throw new NotFoundException(`Undo error: transfer source ${record.source} not exist`);
+
+                    if(!destination)
+                        throw new NotFoundException(`Undo error: transfer destination ${record.destination} not exist`);
+                    
+
+                    // 還原轉帳金額
+                    source.deposit += record.amount;
+                    destination.deposit -= record.amount;
+
+                    await source.save({session: session});
+                    await destination.save({session: session});
+                }
+
+                // 執行本次操作
+                if (updateRecordDto.type) { // 與原先操作不同
+                } else { // 與原先操作相同，只更動金額
+                    if (updateRecordDto.amount) {
+
+                    }
+                }
+            }
+        }  catch (error) {
+            await session.abortTransaction();
+            return error
+        } finally {
+            await session.endSession();
+        }
+    }
+
+    async deleteRecord(recordId: string) {
+        const record = await this.recordModel.findById(recordId)
+        if (!record)
+            throw new NotFoundException(`Record: ${recordId} not found`)
+
+        // 還原原先的操作
+        if (record.type == "income") { //還原收入操作
+            const fund = await this.fundModel.findById(record.destination).exec();
+            if(fund) {
+                fund.deposit -= record.amount; // 將增加的金額扣除
+                await fund.save();
+            } else
+            if(!fund)
+                throw new NotFoundException(`Undo error: income destination: ${record.destination} not exist`);
+        } else if (record.type == "expenditure") { // 還原支出操作
+            if(record.sourceType) {
+                if(record.sourceType == "Fund") {
+                    const fund = await this.fundModel.findById(record.source).exec();
+                    if(!fund)
+                        throw new NotFoundException(`Undo error: expenditure source ${record.source} not exist`);
+                    else {
+                        fund.deposit += record.amount; // 將支出加回來
+                        await fund.save();
+                    }
+                } else if(record.sourceType == "CreditCard") {
+                    const creditCard = await this.creditCardModel.findById(record.source).exec();
+                    if(!creditCard)
+                        throw new NotFoundException(`Undo error: expenditure source ${record.source} not exist`);
+                    else {
+                        creditCard.limit += record.amount; // 將支出加回來
+                        await creditCard.save();
+                    }
+                }
+            }
+        } else if (record.type == "transfer") { // 還原轉帳操作
+            const source = await this.fundModel.findById(record.source).exec();
+            const destination = await this.fundModel.findById(record.destination).exec();
+
+            if(!source)
+                throw new NotFoundException(`Undo error: transfer source ${record.source} not exist`);
+
+            if(!destination)
+                throw new NotFoundException(`Undo error: transfer destination ${record.destination} not exist`);
+            
+
+            // 還原轉帳金額
+            source.deposit += record.amount;
+            destination.deposit -= record.amount;
+
+            await source.save();
+            await destination.save();
+        }
+
+        await record.deleteOne()
+    }
 }

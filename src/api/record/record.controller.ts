@@ -1,9 +1,8 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Query, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RecordService } from './record.service';
 import mongoose from 'mongoose';
 import { CreateRecordDto } from 'src/database/dto/record/create-record.dto';
-import { LedgerService } from '../ledger/ledger.service';
 
 @ApiBearerAuth()
 @ApiTags('record')
@@ -40,5 +39,18 @@ export class RecordController {
     @Post('/create')
     async createRecord(@Body() createRecordDto: CreateRecordDto) {
         return await this.recordService.createRecord(createRecordDto);
+    }
+
+    @ApiParam({name: 'id', required: true, description: 'The id of record'})
+    @Delete('/delete/:id')
+    async delete(@Request() req, @Param('id') id) {
+        if (id) {
+            if (mongoose.Types.ObjectId.isValid(id)) {
+                await this.recordService.deleteRecord(id)
+                return 'Sucess!'
+            } else
+                return new BadRequestException(`${id} is invalid.`)
+        }
+        return
     }
 }

@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, Request } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ConfigService } from '@nestjs/config';
 import { CreateUserDto } from 'src/database/dto/user/create-user.dto';
 import { Public } from 'src/auth/decoratror';
 import { UpdateUserDto } from 'src/database/dto/user/update-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import * as _ from 'lodash'
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -15,7 +16,13 @@ export class UserController {
     @Public()
     @Post('/create')
     create(@Body() createUserDto: CreateUserDto) {
-        return this.userService.create(createUserDto);
+        const verification = this.configService.get<string>('app.verification');
+
+        if(_.isEqual(createUserDto.verification, verification)) {
+            return this.userService.create(createUserDto);
+        } else {
+            throw new BadRequestException('Verification error')
+        }
     }
 
     @Get()

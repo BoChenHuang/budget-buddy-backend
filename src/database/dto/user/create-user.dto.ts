@@ -19,4 +19,9 @@ export class CreateUserDto {
     @MaxLength(15)
     @ApiProperty({ description: 'The password of a user', maxLength: 15 })
     password: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty({ description: 'The verification  string' })
+    verification : string;
 }

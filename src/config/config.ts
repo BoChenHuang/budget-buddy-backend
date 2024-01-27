@@ -1,6 +1,7 @@
 export default () => ({
     app: {
         port: parseInt(process.env.PORT, 10) || 3000,
+        verification: process.env.VERIFICATION ? `${process.env.VERIFICATION}` : 'budget-buddyyy'
     },
     database: {
         url: process.env.DB_URL ? `${process.env.DB_URL}` : `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_SERVER}:${process.env.DB_PORT}`,

@@ -1,8 +1,9 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Post, Query, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RecordService } from './record.service';
 import mongoose from 'mongoose';
 import { CreateRecordDto } from 'src/database/dto/record/create-record.dto';
+import { UpdateRecordDto } from 'src/database/dto/record/update-record.dto';
 
 @ApiBearerAuth()
 @ApiTags('record')
@@ -52,5 +53,10 @@ export class RecordController {
                 return new BadRequestException(`${id} is invalid.`)
         }
         return
+    }
+
+    @Patch('/update')
+    async update(@Request() req, @Body() updateRecordDto: UpdateRecordDto) {
+        return this.recordService.updateRecord(updateRecordDto)
     }
 }

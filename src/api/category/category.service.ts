@@ -37,12 +37,13 @@ export class CategoryService {
         session.startTransaction();
 
         try {
-            const setting = await this.settingModel.findById(settingId)
+            const setting = await this.settingModel.findById(settingId).session(session).exec();
             if(!setting) throw new NotFoundException(`Setting: ${settingId} not found`)
 
             const category = await this.categoryModel.create(createCategoryDto)
             setting.categories.push(category.id)
-            await setting.save()
+            await setting.save({session: session})
+            await session.commitTransaction()
             return category;
         } catch(error) {
             await session.abortTransaction();
@@ -62,10 +63,10 @@ export class CategoryService {
         const session = await this.connection.startSession();
         session.startTransaction();
         try {
-            const setting = await this.settingModel.findById(settingId)
-            if(!setting) throw new NotFoundException(`Setting: ${settingId} not found`)
+            const setting = await this.settingModel.findById(settingId).session(session).exec();
+            if(!setting) throw new NotFoundException(`Setting: ${settingId} not found`);
 
-            const category = await this.categoryModel.findById(categoryId);
+            const category = await this.categoryModel.findById(categoryId).session(session).exec();
             
             // remove category in setting
             const index = setting.categories.indexOf(category.id)
@@ -73,8 +74,9 @@ export class CategoryService {
                 setting.categories.splice(index, 1);
 
             // delete category
-            await category.deleteOne();
-            await setting.save()
+            await category.deleteOne({session: session});
+            await setting.save({session: session});
+            await session.commitTransaction();
         } catch (error) {
             await session.abortTransaction();
             return error

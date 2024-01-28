@@ -12,7 +12,7 @@ export class UpdateRecordDto {
     @IsNotEmpty()
     @ApiProperty({description: "The id of record"})
     recordId: string;
-    
+
     @IsString()
     @ValidateIf((object) => object.name !== undefined)
     @ApiProperty({description: "The name of record"})
@@ -33,26 +33,6 @@ export class UpdateRecordDto {
     @ValidateIf((object) => object.description !== undefined)
     @ApiProperty({description: "The description of record"})
     description: string;
-
-    @IsIn(opTypes)
-    @ValidateIf((object) => object.type !== undefined)
-    @ApiProperty({description: "The type of operation"})
-    type: OperationType;
-
-    @IsIn(scType)
-    @ValidateIf((object) => object.type == 'expenditure' )
-    @ApiProperty({description: "The type of source"})
-    sourceType: SourceType;
-
-    @IsMongoId()
-    @ValidateIf((object) => object.type == 'expenditure' || object.type == 'transfer')
-    @ApiProperty({description: "The id of source"})
-    source: string;
-
-    @IsMongoId()
-    @ValidateIf((object) => object.type == 'income' || object.type == 'transfer')
-    @ApiProperty({description: "The id of destination"})
-    destination: string;
 
     @IsNumber()
     @ValidateIf((object) => object.amount !== undefined)

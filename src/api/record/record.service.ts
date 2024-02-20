@@ -8,6 +8,7 @@ import { Fund } from 'src/database/schema/fund.schema';
 import { Ledger } from 'src/database/schema/ledger.schema';
 import { Record } from 'src/database/schema/record.schema';
 import * as _ from "lodash";
+import { endOfDay, startOfDay } from 'date-fns';
 
 @Injectable()
 export class RecordService {
@@ -20,13 +21,17 @@ export class RecordService {
     ) { }
 
     async getRecordById(recordId: string) {
-        const record = await this.recordModel.findById(recordId)
-        return record
+        const record = await this.recordModel.findById(recordId);
+        return record;
     }
 
-    async getRecordsOfLedger(ledgerId) {
-        const records = await this.recordModel.find({ledgerId: ledgerId})
-        return records
+    async getRecordsOfLedger(ledgerId: string, dateFilter?: {start: string, end: string}) {
+        const records = dateFilter ? await this.recordModel.find({date: {
+            $gte: startOfDay(new Date(dateFilter.start)), 
+            $lte: endOfDay(new Date(dateFilter.end))
+        }}) : await this.recordModel.find({ledgerId: ledgerId});
+
+        return records;
     }
 
     async createRecord(createRecordDto: CreateRecordDto) {

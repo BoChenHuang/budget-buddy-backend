@@ -26,11 +26,26 @@ export class RecordController {
     }
 
     @ApiParam({name: 'ledgerId', required: true, description: 'The id of ledger'})
+    @ApiQuery({name: 'start', required: false, description: 'The start day of record'})
+    @ApiQuery({name: 'end', required: false, description: 'The end day of record'})
     @Get('/:ledgerId')
-    async getRecordsOfLedger(@Request() req, @Param('ledgerId') ledgerId: string) {
+    async getRecordsOfLedger(
+        @Request() req, 
+        @Param('ledgerId') ledgerId: string, 
+        @Query('start') start?: string, 
+        @Query('end') end?: string) {
         if (mongoose.Types.ObjectId.isValid(ledgerId)) {
-            if (ledgerId)
-                return this.recordService.getRecordsOfLedger(ledgerId);
+            if (ledgerId) {
+                if(start) {
+                    if(end)
+                        return this.recordService.getRecordsOfLedger(ledgerId, {start, end})
+                    else {
+                        const today = new Date().toString()
+                        return this.recordService.getRecordsOfLedger(ledgerId, {start: start, end: today})
+                    }
+                } else
+                    return this.recordService.getRecordsOfLedger(ledgerId);
+            }
             else
                 return null;
         } else

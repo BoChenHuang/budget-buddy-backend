@@ -6,7 +6,7 @@ export class Currency {
     name: string;
 
     @Prop()
-    exchangeRate: string;
+    exchangeRate: number;
 
     @Prop({default: Date.now})
     createAt: Date;

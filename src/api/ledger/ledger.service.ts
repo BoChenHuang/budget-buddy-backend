@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
 import { UpdateLedgerDto } from 'src/database/dto/ledger/update-ledger.dto';
 import { Ledger } from 'src/database/schema/ledger.schema';
 import * as _ from 'lodash';
+import { Fund } from 'src/database/schema/fund.schema';
+import { CreditCard } from 'src/database/schema/creditcard.schema';
+import { Record } from 'src/database/schema/record.schema';
+
 @Injectable()
 export class LedgerService {
     constructor(
         @InjectModel('ledger') private ledgerModel: Model<Ledger>,
+        @InjectModel('fund') private fundModel: Model<Fund>,
+        @InjectModel('record') private recordModel: Model<Record>,
+        @InjectModel('creditCard') private creditCardModel: Model<CreditCard>,
+        @InjectConnection() private readonly connection: mongoose.Connection,
     ) { }
 
     async getLedgerById(id: string) {
@@ -33,8 +41,22 @@ export class LedgerService {
     }
 
     async delete(ledgerId: string, userId: string) {
-        await this.ledgerModel.findOneAndDelete({_id: ledgerId, owner: userId});
-        // TODO: delete the records、found and credit card of ledgers
+        const session = await this.connection.startSession();
+        session.startTransaction();
+        try {
+            // delete the records、found and credit card of ledgers
+            await this.recordModel.deleteMany({ledgerId: ledgerId}, {session: session});
+            await this.fundModel.deleteMany({ledgerId: ledgerId}, {session: session});
+            await this.creditCardModel.deleteMany({ledgerId: ledgerId}, {session: session});
+            await this.ledgerModel.findOneAndDelete({_id: ledgerId, owner: userId}, {session: session});
+
+            session.commitTransaction();
+        } catch (error) {
+            await session.abortTransaction();
+            return error
+        } finally {
+            await session.endSession();
+        }
     }
 
     async update(updateLedgerDto: UpdateLedgerDto & {userId: string}) {

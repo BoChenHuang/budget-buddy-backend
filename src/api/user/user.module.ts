@@ -9,7 +9,10 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { SettingSchema } from 'src/database/schema/setting.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'user', schema: UserSchema }, { name: 'setting', schema: SettingSchema }]), ConfigModule],
+  imports: [MongooseModule.forFeature([
+    { name: 'user', schema: UserSchema }, 
+    { name: 'setting', schema: SettingSchema }
+  ]), ConfigModule],
   controllers: [UserController],
   providers: [UserService]
 })

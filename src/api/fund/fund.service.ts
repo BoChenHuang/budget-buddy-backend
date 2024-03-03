@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CreateFundDto } from 'src/database/dto/fund/create-fund.dto';
@@ -6,11 +6,15 @@ import { UpdateFundDto } from 'src/database/dto/fund/update-fund.dto';
 import { Fund } from 'src/database/schema/fund.schema';
 import * as _ from "lodash";
 import { SetFundLockDto } from 'src/database/dto/fund/set-fund-lock.dto';
+import { Ledger } from 'src/database/schema/ledger.schema';
+import { User } from 'src/database/schema/user.schema';
 
 @Injectable()
 export class FundService {
     constructor(
         @InjectModel('fund') private fundModel: Model<Fund>,
+        @InjectModel('ledger') private ledgerModel: Model<Ledger>,
+        @InjectModel('user') private userModel: Model<User>,
     ){}
 
     async getFundById(id: string) {
@@ -24,8 +28,19 @@ export class FundService {
     }
 
     async create(createFundDto: CreateFundDto) {
-        const fund = await this.fundModel.create(createFundDto);
-        return fund;
+        const leger = await this. ledgerModel.findById(createFundDto.ledgerId);
+        if(!leger) {
+            throw new NotFoundException(`Leger: ${createFundDto.ledgerId} not found.`);
+        } else {
+            const user = await this.userModel.findById(leger.owner);
+            if(user.name == "test") {
+                const founds = await this.getFundsByLedgerId(leger._id.toString());
+                if(founds.length >= 1)
+                    throw new ForbiddenException('Test accounts are only allowed to have one found.');
+            }
+            const fund = await this.fundModel.create(createFundDto);
+            return fund;
+        }
     }
 
     async update(updateFundDto: UpdateFundDto) {

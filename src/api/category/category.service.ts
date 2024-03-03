@@ -43,7 +43,7 @@ export class CategoryService {
             const category = await this.categoryModel.create(createCategoryDto)
             setting.categories.push(category.id)
             await setting.save({session: session})
-            await session.commitTransaction()
+            await session.commitTransaction();
             return category;
         } catch(error) {
             await session.abortTransaction();

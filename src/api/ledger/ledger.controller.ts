@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { GetLedgersOfUserDto } from 'src/database/dto/ledger/get-ledgers-of-user.dto';
 import { LedgerService } from './ledger.service';
 import { CreateLedgerDto } from 'src/database/dto/ledger/create-ledger.dto';
@@ -26,7 +26,12 @@ export class LedgerController {
     }
 
     @Post('/create')
-    create(@Request() req, @Body() body: CreateLedgerDto) {
+    async create(@Request() req, @Body() body: CreateLedgerDto) {
+        if(req.user.username == 'test') { // 測試帳號只能擁有一個 ledger
+            const ledgerCount = (await this.ledgerService.getLedger({userId: req.user.id})).length
+            if(ledgerCount >= 1)
+                return new ForbiddenException('Test accounts are only allowed to have one ledger.')
+        }
         const dto = { userId: req.user.id, ...body }
         return this.ledgerService.create(dto)
     }

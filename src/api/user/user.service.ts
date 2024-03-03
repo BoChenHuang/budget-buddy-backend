@@ -22,7 +22,6 @@ export class UserService {
     async create(createUserDto: CreateUserDto): Promise<User> {
         try {
             const user = await this.userModel.find({email: createUserDto.email})
-            console.log(user)
             if(_.size(user))
                 throw new ConflictException('Email is aready exists')
 

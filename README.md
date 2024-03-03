@@ -49,3 +49,13 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Demo
+  https://wide-eyed-sneakers-newt.cyclic.app/api
+  
+  測試用帳號：
+  ```
+  email: "test@gmail.com",
+  password: "test"
+  ```
+  測試用帳號僅可擁有一個帳簿，且帳簿中只能擁有一組帳戶與信用卡資訊。
+

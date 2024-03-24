@@ -9,79 +9,96 @@ import * as _ from 'lodash';
 
 @Injectable()
 export class CategoryService {
-    constructor(
-        @InjectModel('category') private categoryModel: Model<Category>,
-        @InjectModel('setting') private settingModel: Model<Setting>,
-        @InjectConnection() private readonly connection: mongoose.Connection,
-    ) { }
+  constructor(
+    @InjectModel('category') private categoryModel: Model<Category>,
+    @InjectModel('setting') private settingModel: Model<Setting>,
+    @InjectConnection() private readonly connection: mongoose.Connection,
+  ) {}
 
-    async getCategoryById(categoryId: string) {
-        const category = await this.categoryModel.findById(categoryId)
-        return category;
+  async getCategoryById(categoryId: string) {
+    const category = await this.categoryModel.findById(categoryId);
+    return category;
+  }
+
+  async getCategoriesBySetting(settingId: string) {
+    const setting = await this.settingModel.findById(settingId);
+    const categoryIds = setting.categories;
+    const categories = [];
+    for (const id of categoryIds) {
+      const category = await this.categoryModel.findById(id);
+      categories.push(category);
     }
 
-    async getCategoriesBySetting(settingId: string) {
-        const setting = await this.settingModel.findById(settingId)
-        const categoryIds = setting.categories;
-        const categories = []
-        for(const id of categoryIds) {
-            const category = await this.categoryModel.findById(id)
-            categories.push(category)
-        }
+    return categories;
+  }
 
-        return categories;
+  async create(settingId: string, createCategoryDto: CreateCategoryDto) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const setting = await this.settingModel
+        .findById(settingId)
+        .session(session)
+        .exec();
+      if (!setting)
+        throw new NotFoundException(`Setting: ${settingId} not found`);
+
+      const category = await this.categoryModel.create(createCategoryDto);
+      setting.categories.push(category.id);
+      await setting.save({ session: session });
+      await session.commitTransaction();
+      return category;
+    } catch (error) {
+      await session.abortTransaction();
+      return error;
+    } finally {
+      await session.endSession();
     }
+  }
 
-    async create(settingId: string, createCategoryDto: CreateCategoryDto) {
-        const session = await this.connection.startSession();
-        session.startTransaction();
+  async updateCategory(updateCategoryDto: UpdateCategoryDto) {
+    const data = {
+      ..._.omit(updateCategoryDto, 'categoryId'),
+      updateAt: Date.now(),
+    };
+    const category = await this.categoryModel.findByIdAndUpdate(
+      updateCategoryDto.categoryId,
+      data,
+      { new: true },
+    );
+    return category;
+  }
 
-        try {
-            const setting = await this.settingModel.findById(settingId).session(session).exec();
-            if(!setting) throw new NotFoundException(`Setting: ${settingId} not found`)
+  async deleteCategory(categoryId: string, settingId: string) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const setting = await this.settingModel
+        .findById(settingId)
+        .session(session)
+        .exec();
+      if (!setting)
+        throw new NotFoundException(`Setting: ${settingId} not found`);
 
-            const category = await this.categoryModel.create(createCategoryDto)
-            setting.categories.push(category.id)
-            await setting.save({session: session})
-            await session.commitTransaction();
-            return category;
-        } catch(error) {
-            await session.abortTransaction();
-            return error
-        } finally {
-            await session.endSession();
-        }
+      const category = await this.categoryModel
+        .findById(categoryId)
+        .session(session)
+        .exec();
+
+      // remove category in setting
+      const index = setting.categories.indexOf(category.id);
+      if (index > -1) setting.categories.splice(index, 1);
+
+      // delete category
+      await category.deleteOne({ session: session });
+      await setting.save({ session: session });
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      return error;
+    } finally {
+      await session.endSession();
     }
-
-    async updateCategory(updateCategoryDto: UpdateCategoryDto) {
-        const data = { ..._.omit(updateCategoryDto, "categoryId"), updateAt: Date.now()}
-        const category = await this.categoryModel.findByIdAndUpdate(updateCategoryDto.categoryId, data, {new: true})
-        return category;
-    }
-
-    async deleteCategory(categoryId: string, settingId: string) {
-        const session = await this.connection.startSession();
-        session.startTransaction();
-        try {
-            const setting = await this.settingModel.findById(settingId).session(session).exec();
-            if(!setting) throw new NotFoundException(`Setting: ${settingId} not found`);
-
-            const category = await this.categoryModel.findById(categoryId).session(session).exec();
-            
-            // remove category in setting
-            const index = setting.categories.indexOf(category.id)
-            if(index > -1)
-                setting.categories.splice(index, 1);
-
-            // delete category
-            await category.deleteOne({session: session});
-            await setting.save({session: session});
-            await session.commitTransaction();
-        } catch (error) {
-            await session.abortTransaction();
-            return error
-        } finally {
-            await session.endSession()
-        }
-    }
+  }
 }

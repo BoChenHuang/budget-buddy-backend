@@ -8,13 +8,15 @@ import { FundSchema } from 'src/database/schema/fund.schema';
 import { CreditCardSchema } from 'src/database/schema/creditcard.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([
-    {name: "ledger", schema: LedgerSchema},
-    {name: "record", schema: RecordSchema}, 
-    {name: "fund", schema: FundSchema},
-    {name: "creditCard", schema: CreditCardSchema}
-  ])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'ledger', schema: LedgerSchema },
+      { name: 'record', schema: RecordSchema },
+      { name: 'fund', schema: FundSchema },
+      { name: 'creditCard', schema: CreditCardSchema },
+    ]),
+  ],
   controllers: [LedgerController],
-  providers: [LedgerService]
+  providers: [LedgerService],
 })
 export class LedgerModule {}

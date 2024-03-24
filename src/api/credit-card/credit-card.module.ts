@@ -7,12 +7,14 @@ import { LedgerSchema } from 'src/database/schema/ledger.schema';
 import { UserSchema } from 'src/database/schema/user.schema';
 
 @Module({
-  imports:[MongooseModule.forFeature([
-    {name: "creditCard", schema: CreditCardSchema},
-    {name: "ledger", schema: LedgerSchema},
-    { name: 'user', schema: UserSchema }
-  ])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: 'creditCard', schema: CreditCardSchema },
+      { name: 'ledger', schema: LedgerSchema },
+      { name: 'user', schema: UserSchema },
+    ]),
+  ],
   controllers: [CreditCardController],
-  providers: [CreditCardService]
+  providers: [CreditCardService],
 })
 export class CreditCardModule {}

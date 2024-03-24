@@ -1,4 +1,14 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Request,
+} from '@nestjs/common';
 import { FundService } from './fund.service';
 import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import mongoose from 'mongoose';
@@ -10,46 +20,42 @@ import { SetFundLockDto } from 'src/database/dto/fund/set-fund-lock.dto';
 @ApiTags('fund')
 @Controller('api/fund')
 export class FundController {
-    constructor(
-        private readonly fundService: FundService
-    ){}
+  constructor(private readonly fundService: FundService) {}
 
-    @ApiQuery({name: 'id', required: true, description: 'The id of fund'})
-    @Get()
-    async getFundById(@Request() req, @Query('id') id: string) {
-        if (mongoose.Types.ObjectId.isValid(id)) {
-            if (id)
-                return this.fundService.getFundById(id);
-            else
-                return null;
-        } else
-            return new BadRequestException(`${id} is invalid.`);
-    }
+  @ApiQuery({ name: 'id', required: true, description: 'The id of fund' })
+  @Get()
+  async getFundById(@Request() req, @Query('id') id: string) {
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      if (id) return this.fundService.getFundById(id);
+      else return null;
+    } else return new BadRequestException(`${id} is invalid.`);
+  }
 
-    @ApiParam({name: 'ledgerId', required: true, description: 'The id of ledger'})
-    @Get('/:ledgerId')
-    async getFundsOfLedger(@Request() req, @Param('ledgerId') ledgerId: string) {
-        if (mongoose.Types.ObjectId.isValid(ledgerId)) {
-            if (ledgerId)
-                return this.fundService.getFundsByLedgerId(ledgerId);
-            else
-                return null;
-        } else
-            return new BadRequestException(`${ledgerId} is invalid.`);
-    }
+  @ApiParam({
+    name: 'ledgerId',
+    required: true,
+    description: 'The id of ledger',
+  })
+  @Get('/:ledgerId')
+  async getFundsOfLedger(@Request() req, @Param('ledgerId') ledgerId: string) {
+    if (mongoose.Types.ObjectId.isValid(ledgerId)) {
+      if (ledgerId) return this.fundService.getFundsByLedgerId(ledgerId);
+      else return null;
+    } else return new BadRequestException(`${ledgerId} is invalid.`);
+  }
 
-    @Post('/create')
-    async createFund(@Body() createFundDto: CreateFundDto) {
-        return this.fundService.create(createFundDto)
-    }
+  @Post('/create')
+  async createFund(@Body() createFundDto: CreateFundDto) {
+    return this.fundService.create(createFundDto);
+  }
 
-    @Patch('/update')
-    async updateFund(@Body() updateFundDto: UpdateFundDto) {
-        return this.fundService.update(updateFundDto);
-    }
+  @Patch('/update')
+  async updateFund(@Body() updateFundDto: UpdateFundDto) {
+    return this.fundService.update(updateFundDto);
+  }
 
-    @Patch('/setLock')
-    async setLock(@Body() setFundLockDto: SetFundLockDto) {
-        return this.fundService.setLock(setFundLockDto)
-    }
+  @Patch('/setLock')
+  async setLock(@Body() setFundLockDto: SetFundLockDto) {
+    return this.fundService.setLock(setFundLockDto);
+  }
 }

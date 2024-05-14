@@ -6,19 +6,19 @@ import { Currency } from 'src/database/schema/currency.schema';
 
 @Injectable()
 export class CurrencyService {
-    constructor(
-        @InjectModel('currency') private currencyModel: Model<Currency>,
-    ){}
+  constructor(
+    @InjectModel('currency') private currencyModel: Model<Currency>,
+  ) {}
 
-    async getAllCurrency() {
-        const currencies = await this.currencyModel.find();
-        return currencies;
-    }
+  async getAllCurrency() {
+    const currencies = await this.currencyModel.find();
+    return currencies;
+  }
 
-    async createCurrency(createCurrencyDto: CreateCurrencyDto) {
-        const currency = await this.currencyModel.create(createCurrencyDto)
-        return currency;
-    }
+  async createCurrency(createCurrencyDto: CreateCurrencyDto) {
+    const currency = await this.currencyModel.create(createCurrencyDto);
+    return currency;
+  }
 
-    // TODO: update、delete
+  // TODO: update、delete
 }

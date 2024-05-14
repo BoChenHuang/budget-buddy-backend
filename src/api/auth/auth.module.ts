@@ -7,15 +7,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from 'src/database/schema/user.schema';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([{ name: 'user', schema: UserSchema }]),
-        JwtModule.register({
-            global: true,
-            secret: jwtConstants.secret,
-            signOptions: { expiresIn: '5400s' },
-        }),
-    ],
-    providers: [AuthService],
-    controllers: [AuthController],
+  imports: [
+    MongooseModule.forFeature([{ name: 'user', schema: UserSchema }]),
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '5400s' },
+    }),
+  ],
+  providers: [AuthService],
+  controllers: [AuthController],
 })
-export class AuthModule { }
+export class AuthModule {}
